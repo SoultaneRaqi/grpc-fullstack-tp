@@ -10,6 +10,8 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend-network # Only accessible by the backend
 
   backend:
     build: ./backend
@@ -20,7 +22,10 @@ services:
     depends_on:
       - db
     volumes:
-      - ./proto:/app/proto # Inject proto files into backend container
+      - ./proto:/app/proto
+    networks:
+      - backend-network  # Talks to the DB here
+      - frontend-network # Listens to Envoy here
 
   envoy:
     image: envoyproxy/envoy:v1.22.0
@@ -31,6 +36,8 @@ services:
       - "8080:8080"
     depends_on:
       - backend
+    networks:
+      - frontend-network # Only accessible by the frontend
 
   frontend:
     build: ./frontend
@@ -39,6 +46,15 @@ services:
       - "5173:5173"
     depends_on:
       - envoy
+    networks:
+      - frontend-network
 
 volumes:
   db_data:
+
+# Define the custom networks
+networks:
+  frontend-network:
+    driver: bridge
+  backend-network:
+    driver: bridge
