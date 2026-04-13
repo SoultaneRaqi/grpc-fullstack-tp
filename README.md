@@ -1,54 +1,163 @@
-# TP : Application Web Full Stack (React/Vite, Node.js, MySQL, gRPC, Docker)
+# 🚀 Full Stack Web Application
 
-## 🎯 Objectif du Projet
-Ce projet répond aux exigences du TP Full Stack, mais avec une approche moderne orientée microservices. Au lieu d'utiliser une API REST classique, ce projet implémente une communication **gRPC** entre le frontend et le backend, offrant de meilleures performances et un typage strict via les Protocol Buffers (`.proto`).
+**React · Node.js · MySQL · gRPC · Docker**
 
-## 🏗️ Architecture
+A modern full stack web application built with a **microservices architecture**, using **gRPC** instead of traditional REST for high-performance, strongly-typed communication between services. The entire system runs in a single `docker-compose up --build`.
 
-L'application est orchestrée via Docker Compose et se compose de **4 services** :
+---
 
-1. **Frontend (React + Vite)** : Interface utilisateur ultra-rapide. Il utilise `grpc-web` pour formater les requêtes.
-2. **Proxy (Envoy)** : Les navigateurs web ne supportant pas nativement le protocole HTTP/2 pur requis par gRPC, Envoy agit comme un proxy de traduction. Il intercepte les requêtes HTTP/1.1 du frontend et les traduit en gRPC pour le backend.
-3. **Backend (Node.js + ES Modules)** : Serveur gRPC qui traite les requêtes (CRUD) et interagit avec la base de données.
-4. **Base de données (MySQL)** : Stockage persistant des données. Initialisée automatiquement avec un script SQL.
+## 🧠 Architecture
 
+```
+[ React Frontend ]
+       ↓  grpc-web (HTTP/1.1)
+[ Envoy Proxy ]
+       ↓  gRPC (HTTP/2)
+[ Node.js Backend ]
+       ↓  SQL
+[ MySQL Database ]
+```
 
+| Service | Technology | Port |
+|---|---|---|
+| Frontend | React + Vite | `localhost:5173` |
+| Proxy | Envoy | internal |
+| Backend | Node.js (gRPC server) | internal |
+| Database | MySQL | internal |
 
-## 🚀 Prérequis
-- [Docker](https://www.docker.com/) et [Docker Compose](https://docs.docker.com/compose/) installés sur votre machine.
-- *Note : Les fichiers JavaScript générés par `protoc` sont déjà inclus dans le code source (`frontend/src/produit_pb.js` etc.), vous n'avez donc pas besoin d'installer le compilateur Protocol Buffers pour exécuter le projet.*
+---
 
-## 🛠️ Instructions d'exécution
+## ⚙️ Tech Stack
 
-1. Clonez ou extrayez ce projet.
-2. À la racine du projet, ouvrez un terminal.
-3. Exécutez la commande suivante pour construire et démarrer les conteneurs :
-   ```bash
-   docker-compose up --build
-Attendez quelques secondes que la base de données MySQL s'initialise.
+| Layer | Technology |
+|---|---|
+| Frontend | React + Vite |
+| Backend | Node.js (gRPC) |
+| Communication | gRPC + Protocol Buffers |
+| Proxy | Envoy |
+| Database | MySQL |
+| DevOps | Docker + Docker Compose |
 
-Ouvrez votre navigateur et accédez à l'application : http://localhost:5173
+---
 
-📂 Structure du projet
-Plaintext
+## 📂 Project Structure
+
+```
 /
-├── backend/          # Serveur Node.js (gRPC)
-├── db/               # Script d'initialisation SQL (init.sql)
-├── envoy/            # Fichier de configuration du proxy Envoy
-├── frontend/         # Application React propulsée par Vite
-├── proto/            # Le contrat de données (produit.proto)
-├── docker-compose.yml# Orchestration des services
-└── .env              # Variables d'environnement
-✨ Fonctionnalités implémentées
-✅ Architecture Full Stack conteneurisée.
+├── backend/            # Node.js gRPC server
+├── db/                 # SQL initialization script
+├── envoy/              # Envoy proxy configuration
+├── frontend/           # React application (Vite)
+├── proto/              # .proto contract files
+├── docker-compose.yml  # Service orchestration
+├── .env                # Environment variables
+└── .gitignore
+```
 
-✅ Utilisation du nom de service Docker (db) pour la connexion backend -> base de données.
+---
 
-✅ Opérations CRUD complètes via gRPC (GetAll, Create implémentés dans l'UI).
+## 🚀 Getting Started
 
-✅ Séparation stricte des responsabilités (Frontend, Proxy, Backend, DB).
+### Prerequisites
 
-✅ Volumes Docker pour la persistance des données MySQL.
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
 
+> Protocol Buffer compiled files are already included. No need to install `protoc`.
 
-With the `.env` file, the `.gitignore`, and this `README.md`, your project goes from "functional" to a completely professional submission. Good luck with your grade!
+### Run the project
+
+```bash
+docker-compose up --build
+```
+
+Wait for all services to start. MySQL may take a few seconds to initialize.
+
+### Open the app
+
+```
+http://localhost:5173
+```
+
+---
+
+## 🔥 Features
+
+- Microservices architecture with clean separation of concerns
+- gRPC communication — strongly typed via `.proto` contracts
+- Fully Dockerized — one command to run everything
+- CRUD operations: list products, create product
+- Persistent MySQL storage via Docker volumes
+- Envoy proxy bridges the browser's lack of native gRPC support
+
+---
+
+## 🔄 gRPC Request Flow
+
+1. User interacts with React UI
+2. Frontend sends request using `grpc-web`
+3. Envoy translates HTTP/1.1 → gRPC (HTTP/2)
+4. Backend processes the request
+5. Backend queries MySQL
+6. Response travels back through Envoy to the frontend
+
+---
+
+## ⚠️ Troubleshooting
+
+**Port already in use**
+```bash
+sudo lsof -i :5173
+sudo kill -9 <PID>
+```
+
+**Reset containers and volumes**
+```bash
+docker-compose down -v
+docker-compose up --build
+```
+
+**Database not initializing**
+
+Wait a few seconds after startup, then check logs:
+```bash
+docker-compose logs db
+```
+
+---
+
+## 📌 Environment Variables
+
+Create a `.env` file at the project root:
+
+```env
+DB_HOST=db
+DB_USER=root
+DB_PASSWORD=password
+DB_NAME=app_db
+```
+
+---
+
+## 📈 Possible Improvements
+
+- [ ] Update & Delete UI
+- [ ] Authentication (JWT)
+- [ ] API Gateway instead of Envoy only
+- [ ] CI/CD pipeline
+- [ ] Cloud deployment (AWS / VPS)
+- [ ] Logging & monitoring (Prometheus, Grafana)
+
+---
+
+## 👨‍💻 Author
+
+**Soultane Raqi** — Full Stack Developer Student
+
+---
+
+## 🎯 Conclusion
+
+This project demonstrates advanced full stack skills — microservices architecture, gRPC in a web context, and production-grade containerization with Docker. It goes beyond standard academic requirements and reflects real-world practices.
+
+⭐ If you found this project useful, consider improving and scaling it further!
