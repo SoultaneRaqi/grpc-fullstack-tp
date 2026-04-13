@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    env_file: .env
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  backend:
+    build: ./backend
+    container_name: grpc_backend
+    env_file: .env
+    ports:
+      - "50051:50051"
+    depends_on:
+      - db
+    volumes:
+      - ./proto:/app/proto # Inject proto files into backend container
+
+  envoy:
+    image: envoyproxy/envoy:v1.22.0
+    container_name: envoy_proxy
+    volumes:
+      - ./envoy/envoy.yaml:/etc/envoy/envoy.yaml
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend
+
+  frontend:
+    build: ./frontend
+    container_name: react_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - envoy
+
+volumes:
+  db_data:
